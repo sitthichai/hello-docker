@@ -1,0 +1,46 @@
+version: '2'
+services:
+
+  db:
+    image: mysql:8.0
+    # container_name: lemp_mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    volumes:
+      - ./database:/var/lib/mysql
+    ports:
+      - 4306:3306
+    # Use root/example as user/password credentials
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_HOST: '%'
+
+  php:
+    image: php:7-fpm-alpine
+    container_name: lemp_php-fpm
+    restart: always
+    volumes:
+      - ./www/:/var/www/html
+    expose:
+      - "9000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: lemp_nginx
+    restart: always
+    volumes:
+      - ./nginx/conf/nginx.conf:/etc/nginx/conf/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    volumes_from:
+      - php
+    ports:
+      - 80:80
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: lemp_phpmyadmin
+    restart: always
+    ports:
+      - "8000:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
